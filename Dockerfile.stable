@@ -20,9 +20,7 @@ ADD http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriv
 RUN mkdir -p /root/chrome-driver &&\
     unzip -d /root/chrome-driver/ /root/chrome-driver/chromedriver_linux64.zip &&\
     rm -f /root/chrome-driver/chromedriver_linux64.zip
-# xstartup
-ADD ./xstartup.sh /xstartup.sh
-RUN chmod 775 /xstartup.sh
+
 # selenium
 # TODO: make better url scheme
 ADD http://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-$SELENIUM_VERSION.jar \
@@ -38,8 +36,15 @@ RUN tar -C /root/ -xjvf /root/firefox.tar.bz2 && rm -f /root/firefox.tar.bz2
 RUN tar -C /root/firefox/ -xvf /root/gecko.tar.gz && rm -f /root/gecko.tar.gz
 RUN mkdir -p ~/.cache/dconf
 
+# Add the xstartup file into the image and set the default password.
+RUN mkdir /root/.vnc
+ADD ./xstartup.sh /root/.vnc/xstartup
+RUN chmod 755 /root/.vnc/xstartup
+RUN echo 123456 | vncpasswd -f > /root/.vnc/passwd
+RUN chmod -v 600 /root/.vnc/passwd
+
 # runtime
 EXPOSE 4444
-EXPOSE 5999
+EXPOSE 5901
 
-CMD ["/bin/bash", "/xstartup.sh"]
+CMD    ["vncserver", "-fg"]
